@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const UploadForm = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const handleFileRead = (file) => {
     const reader = new FileReader();
@@ -48,9 +50,23 @@ const UploadForm = () => {
     fileInputRef.current.click();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedFile) {
-      navigate('/restored', { state: { imageUrl: previewUrl } }); 
+      setIsLoading(true);
+      try {
+        const formData = new FormData();
+        formData.append('image', selectedFile);
+        console.log('Uploading file:', selectedFile);
+
+        const response = await axios.post('/api/vision/analyze', formData);
+        console.log('Response data:', response.data);
+        navigate('/restored', { state: { data: response.data } });
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('An error occurred while uploading the image. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       alert('Please select a file first');
     }
@@ -63,7 +79,7 @@ const UploadForm = () => {
         We'll use the latest AI technology to restore your photos. We accept most photo file types, including .jpg, .png, .tiff, or .heic.
       </p>
       <div className="max-w-md mx-auto px-4">
-        <div 
+        <div
           className={`mb-4 p-4 border-2 ${isDragging ? 'border-green-500' : 'border-dashed border-gray-400'} rounded-lg text-center cursor-pointer`}
           onClick={handleUploadClick}
           onDragOver={handleDragOver}
@@ -83,11 +99,35 @@ const UploadForm = () => {
             className="hidden"
           />
         </div>
-        <button 
-          className="w-full bg-[#303030] text-white px-4 py-2 rounded hover:bg-[#404040] transition-colors"
+        <button
+          className="w-full bg-[#303030] text-white px-4 py-2 rounded hover:bg-[#404040] transition-colors flex justify-center items-center"
           onClick={handleSubmit}
+          disabled={isLoading}
         >
-          Restore Image
+          {isLoading ? (
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              ></path>
+            </svg>
+          ) : (
+            'Restore Image'
+          )}
         </button>
       </div>
     </section>
