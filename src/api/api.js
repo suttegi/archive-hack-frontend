@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8000/api'
+    baseURL: '/api'
 });
 
 export const uploadImage = (image) => {
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    formData.append('image', image);
     return api.post('/vision/analyze', formData);
 };
 

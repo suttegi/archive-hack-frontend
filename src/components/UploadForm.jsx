@@ -55,12 +55,17 @@ const UploadForm = () => {
       setIsLoading(true);
       try {
         const formData = new FormData();
-        formData.append('image', selectedFile);
+        formData.append('file', selectedFile);
         console.log('Uploading file:', selectedFile);
 
-        const response = await axios.post('/api/vision/analyze', formData);
+        const response = await axios.post('http://localhost:8000/api/vision/analyze', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        });
+        
         console.log('Response data:', response.data);
-        navigate('/restored', { state: { data: response.data } });
+        navigate('/restored', { state: { data: response.data, imageUrl:previewUrl } });
       } catch (error) {
         console.error('Error uploading image:', error);
         alert('An error occurred while uploading the image. Please try again.');
